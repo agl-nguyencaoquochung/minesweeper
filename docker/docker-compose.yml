@@ -1,0 +1,64 @@
+version: '3.8'
+
+networks:
+    default:
+        external:
+            name: bridge
+    agl-network:
+        name: agl-network
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 192.168.216.0/24
+
+volumes:
+    agl-db-volume:
+        name: agl-db-volume
+        driver: local
+
+services:
+    agl-app:
+        build: ./app
+        container_name: agl-app-container
+        hostname: agl-app
+        ports:
+            - 8888:80
+        volumes:
+            - ./app/etc/httpd/conf.vhosts.d:/etc/httpd/conf.vhosts.d
+            - ../wordpress:/home/apps/dev/wordpress
+            - ../bin:/home/apps/dev/wordpress/bin
+        networks:
+            agl-network:
+                ipv4_address: 192.168.216.11
+        working_dir: /home/apps/dev/wordpress
+        command: >
+            /bin/bash -c "
+                /usr/sbin/httpd &
+                /bin/bash"
+        depends_on:
+            - agl-db
+        privileged: true
+        restart: always
+        tty: true
+
+    agl-db:
+        image: mysql:5.7
+        container_name: agl-db-container
+        hostname: agl-db
+        ports:
+            - 3306:3306
+        volumes:
+            - agl-db-volume:/var/lib/mysql
+        networks:
+            agl-network:
+                ipv4_address: 192.168.216.10
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: wordpress
+            MYSQL_USER: wordpress
+            MYSQL_PASSWORD: wordpress
+            TZ: 'Asia/Tokyo'
+        privileged: true
+        restart: always
+        tty: true

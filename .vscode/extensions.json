@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "bmewburn.vscode-intelephense-client",
+    "ms-azuretools.vscode-docker",
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "stylelint.vscode-stylelint",
+    "shardulm94.trailing-spaces",
+    "oderwat.indent-rainbow",
+    "wayou.vscode-todo-highlight",
+    "ms-vsliveshare.vsliveshare"
+  ]
+}

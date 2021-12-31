@@ -1,0 +1,56 @@
+// =========================================================
+// font - font-familyの設定など
+// =========================================================
+
+// ---------------------------------------------------------------
+//  ■font-familyの設定
+//  デフォルトではNoto Sans JP(源ノ角ゴシック)を最優先にしています。
+// ---------------------------------------------------------------
+
+// ・Google Fontsの読み込み（不要なウェイトは削除してください）
+// --------------------
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;600;700&display=swap');
+
+// ・ゴシック体
+// --------------------
+
+// 游ゴシックの細さの差異対策
+@font-face {
+    font-family: YuGothicM;
+    src: local('Yu Gothic Medium');
+}
+
+$font-family-jp-sans-serif: 'Noto Sans JP',
+    '游ゴシック Medium',
+    '游ゴシック体',
+    'Yu Gothic Medium',
+    YuGothic,
+    'ヒラギノ角ゴ ProN',
+    'Hiragino Kaku Gothic ProN',
+    'メイリオ',
+    Meiryo,
+    'ＭＳ Ｐゴシック',
+    'MS PGothic',
+    sans-serif;
+
+// 游ゴシック優先(Webフォント未使用)
+// $font-family-jp-sans-serif: "游ゴシック Medium","游ゴシック体","Yu Gothic Medium",YuGothic,"ヒラギノ角ゴ ProN","Hiragino Kaku Gothic ProN","メイリオ",Meiryo,"ＭＳ Ｐゴシック","MS PGothic",sans-serif;
+
+
+// ・明朝体
+// --------------------
+$font-family-jp-serif: 'Noto Serif JP',
+    'Yu Mincho',
+    YuMincho,
+    'Hiragino Mincho ProN',
+    HGS明朝E,
+    メイリオ,
+    Meiryo,
+    serif;
+
+
+// ・独自に追加したWebフォントなど
+// --------------------
+$font-family-en: 'Lato',
+    sans-serif;

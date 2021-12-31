@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PROJECT_PATH=$(cd $(dirname $(dirname $0)) && pwd)
+
+if [ $# == 0 ]
+then
+  echo "Usage: screenshot-diff beforePath afterPath"
+  exit 1
+fi
+
+node ${PROJECT_PATH}/tasks/screenshot-diff.js $*

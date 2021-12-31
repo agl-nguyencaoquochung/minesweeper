@@ -1,0 +1,22 @@
+// =========================================================
+// media-query - レスポンシブの設定
+// =========================================================
+
+// ---------------------------------------------------------------
+//  ■ブレイクポイント
+//  bootstrapのデフォルトの設定を使用しています。
+//  それぞれの数値を変更するとbootstrapのグリッドシステムにも反映されます。
+// ---------------------------------------------------------------
+$mq-breakpoints: ('sm': 576px, 'md': 768px, 'lg': 992px, 'xl': 1200px, 'xxl': 1240px, );
+
+@mixin mq($breakpoint: md, $rule: min, $subtraction: true) {
+    $breakpoint: map_get($mq-breakpoints, $breakpoint);
+
+    @if $rule==max and $subtraction {
+        $breakpoint: $breakpoint - 1;
+    }
+
+    @media screen and (#{$rule}-width: $breakpoint) {
+        @content;
+    }
+}

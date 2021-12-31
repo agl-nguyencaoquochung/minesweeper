@@ -1,0 +1,20 @@
+<%
+const basePath = '.'
+%>
+<html>
+  <head>
+    <title></title>
+  </head>
+  <body>
+    <%- include('/layouts/_header'); %>
+    <main>
+      <% items.forEach(item => { %>
+        <div>
+          <h2><%- item.title %></h2>
+          <p><%- item.detail %></p>
+        </div>
+      <% }); %>
+    </main>
+    <%- include('/layouts/_footer'); %>
+  </body>
+</html>

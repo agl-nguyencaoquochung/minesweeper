@@ -1,0 +1,46 @@
+/* =========================================================
+base - 基本設定
+========================================================= */
+html {
+    font-size: 62.5%;
+}
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+body {
+    font-family: $font-family-jp-sans-serif;
+    color: $base-font-color;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    // @include link-color;
+    cursor: pointer;
+
+    &:hover {
+        color: inherit;
+    }
+}
+
+@include mq(lg, max) {
+    img {
+        max-width: 100%;
+    }
+}
+
+@include mq(lg, min) {
+    .sp-only {
+        display: none;
+    }
+}
+
+@include mq(lg, max) {
+    .pc-only {
+        display: none;
+    }
+}
