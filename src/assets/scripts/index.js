@@ -1,291 +1,272 @@
-document.addEventListener('DOMContentLoaded', () => {
-    countUpTime();
-    // Khai báo
-    const smileIcon = document.querySelector('#smile');
-    const grid = document.querySelector('.l-board__grid');
-    let clickCount = 0;
-    let totalSeconds = 0;
-    let flag = 10;
-    let width = 10;
-    let bombAmount = 10;
-    let squares = [];
-    let isOverGame = false;
-    let gameLose = document.querySelector('.l-popup');
-    let flagCounter = document.querySelector('#flagCounter');
-    flagCounter.innerHTML = flag;
+let size = 10; // 10 ô
+let bombFrequency = 0.1; // Tỉ lệ ra bomb 0.1.
+let tileSize = 60;
+let clickCount = 0;
+let totalSeconds = 0;
+let flagcount = 10;
 
-    // Hàm đếm thời gian chạy
-    function countUpTime() {
-        var minutesLabel = document.getElementById('minutes');
-        var secondsLabel = document.getElementById('seconds');
+const board = document.querySelectorAll('.l-board')[0];
+let tiles;
+let boardSize;
 
-        setInterval(setTime, 1000);
+const restartBtn = document.querySelectorAll('.l-board__smile')[0];
+const endscreen = document.querySelectorAll('.l-board__bottom')[0]
 
-        function setTime() {
-            if (isOverGame == false) {
-                ++totalSeconds;
-                secondsLabel.innerHTML = pad(totalSeconds % 60);
-                minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
-            } else {
-                return;
-            }
 
+let bombs = [];
+let numbers = [];
+let numberColors = ['#3498db', '#2ecc71', '#e74c3c', '#000080']; // màu chữ từ 1-4
+let endscreenContent = { // Thông báo thắng và thua
+    win: '<span>✔</span> you won!',
+    loose: '💣 Booom! Game over.'
+};
+
+let gameOver = false; // Mặc định false
+
+
+// ĐẾM thời gian chạy
+function countUpTime() {
+    var minutesLabel = document.getElementById('minutes');
+    var secondsLabel = document.getElementById('seconds');
+
+    setInterval(setTime, 1000);
+
+    function setTime() {
+        if (gameOver == false) {
+            ++totalSeconds;
+            secondsLabel.innerHTML = pad(totalSeconds % 60);
+            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+        } else {
+            return;
         }
 
-        function pad(val) {
-            var valString = val + '';
-            if (valString.length < 2) {
-                return '0' + valString;
-            } else {
-                return valString;
-            }
-        }
     }
 
-    function createBoard() {
-        // Tạo mảng bombs random
-        const bombsArray = Array(bombAmount).fill('l-board__bomb'); // 10 mảng bomb
-        const emptyArray = Array(width * width - bombAmount).fill('l-board__valid'); // 90 mảng l-board__valid
-
-        const gameArray = emptyArray.concat(bombsArray); // nối 2 mảng bomb và l-board__valid lại với nhau
-        const shuffledArray = gameArray.sort(() => Math.random() - 0.5); // trộn 2 mảng lại với nhau
-        // Tạo bảng 10*10 ô rồi đưa vào grid
-        for (let i = 0; i < width * width; i++) {
-            const square = document.createElement('div');
-            square.classList.add(shuffledArray[i])
-            square.setAttribute('id', i); //set id cho các ô
-            grid.appendChild(square); // đưa các ô vào Grid
-            squares.push(square); // đưa ô vào mảng
-
-            square.addEventListener('click', function() {
-                click(square);
-
-            });
-
-
-            // Click chuột phải thêm lá cờ.
-            square.oncontextmenu = function(event) {
-                event.preventDefault();
-                addFlag(square);
-            };
-
-        }
-        countClick(); // Chạy hàm đếm số lượt Click
-        //Thêm số vào ô
-        for (let i = 0; i < squares.length; i++) {
-            let total = 0;
-            const isLeftEdge = (i % width === 0); // rìa bên trái - 0 10...90
-            const isRightEdge = (i % width === width - 1); // rìa bên phải  - 9 19....99
-            //Kiểm tra nếu có class l-board__valid thì chạy
-            if (squares[i].classList.contains('l-board__valid')) {
-                // left bomb
-                if (i > 0 && !isLeftEdge && squares[i - 1].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // top-right 
-                if (i > 9 && !isRightEdge && squares[i + 1 - width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // top
-                if (i >= 10 && squares[i - width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // top-left
-                if (i >= 11 && !isLeftEdge && squares[i - 1 - width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // right
-                if (i <= 98 && !isRightEdge && squares[i + 1].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // bottom-left
-                if (i < 90 && !isLeftEdge && squares[i - 1 + width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // bottom-right
-                if (i <= 88 && !isRightEdge && squares[i + 1 + width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                // bottom
-                if (i <= 89 && squares[i + width].classList.contains('l-board__bomb')) {
-                    total++
-                }
-                squares[i].setAttribute('data', total++);
-            }
+    function pad(val) {
+        var valString = val + '';
+        if (valString.length < 2) {
+            return '0' + valString;
+        } else {
+            return valString;
         }
     }
-    // Hàm đếm số Click vào ô
-    function countClick() {
-        var divElements = document.querySelectorAll('.l-board__grid div');
-        divElements.forEach(divElement => {
+}
+countUpTime();
+/* setup the game */
+function setup() {
+    for (let i = 0; i < Math.pow(size, 2); i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('l-board__tile');
+        board.appendChild(tile);
+    }
+    tiles = document.querySelectorAll('.l-board__tile');
+    boardSize = Math.sqrt(tiles.length);
+    board.style.width = boardSize * tileSize + 'px';
 
-            divElement.addEventListener('mousedown', function(evt) {
-                switch (evt.buttons) {
-                case 1:
-                    clickCount += 1;
-                    break;
-                case 2:
-                    clickCount += 1;
-                    break;
-                }
-                console.log(clickCount);
-            });
+    document.documentElement.style.setProperty('--tileSize', `${tileSize}px`);
+    document.documentElement.style.setProperty('--boardSize', `${boardSize * tileSize}px`);
+
+    let x = 0;
+    let y = 0;
+    tiles.forEach((tile, i) => {
+        i;
+        // Set Attribute Tile trục tung và hoành
+        tile.setAttribute('data-tile', `${x},${y}`);
+
+        // Thêm Bombs.
+        let random_boolean = Math.random() < bombFrequency;
+        if (random_boolean) {
+            bombs.push(`${x},${y}`);
+            if (x > 0) numbers.push(`${x - 1},${y}`);
+            if (x < boardSize - 1) numbers.push(`${x + 1},${y}`);
+            if (y > 0) numbers.push(`${x},${y - 1}`);
+            if (y < boardSize - 1) numbers.push(`${x},${y + 1}`);
+
+            if (x > 0 && y > 0) numbers.push(`${x - 1},${y - 1}`);
+            if (x < boardSize - 1 && y < boardSize - 1) numbers.push(`${x + 1},${y + 1}`);
+
+            if (y > 0 && x < boardSize - 1) numbers.push(`${x + 1},${y - 1}`);
+            if (x > 0 && y < boardSize - 1) numbers.push(`${x - 1},${y + 1}`);
+        }
+
+        x++;
+        if (x >= boardSize) {
+            x = 0;
+            y++;
+        }
+
+        // CLICK chuột phải
+        tile.oncontextmenu = function(e) {
+            e.preventDefault();
+            flag(tile); // Chạy hàm thêm lá cờ.
+        }
+
+        // CLICK chuột trái
+        tile.addEventListener('click', function() {
+            clickTile(tile); // Hàm chạy click chuột trái
         });
-    }
-    // Hàm Click vào ô
-    function click(square) {
-        var currentId = square.id; // Lấy id từng ô
-        if (isOverGame) {
-            return;
-        }
-        // Click vào ô Bomb 
-        if (square.classList.contains('l-board__bomb')) {
-            if (square.classList.contains('l-board__flag')) {
-                return;
-            } else {
-                overGame(square);
-                popupLose();
-            }
-
-        } else if (square.classList.contains('l-board__flag')) {
-            return;
-        } else { // Ngược lại khi không click vào ô Bomb 
-            let total = square.getAttribute('data'); // Lấy data điểm gán vào biến total
-            if (total != 0) { //Khi điểm khác 0
-                square.classList.add('l-board__valid--checked');
-                square.innerHTML = total; // Hiện ra ngoài ô
-                return;
-            }
-            square.classList.add('l-board__valid--checked'); // các điểm = 0
-
-        }
-        checkSquare(square, currentId);
-    }
-    // Kiểm tra các ô kế bên khi nhấp vào ô.
-    function checkSquare(square, currentId) {
-        const isLeftEdge = currentId % width === 0;
-        const isRightEdge = currentId % width === width - 1;
-
-        setTimeout(() => {
-            // left 
-            if (currentId > 0 && !isLeftEdge) {
-                const newId = squares[parseInt(currentId) - 1].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // top-right 
-            if (currentId > 9 && !isRightEdge) {
-                const newId = squares[parseInt(currentId) + 1 - width].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // top
-            if (currentId > 10) {
-                const newId = squares[parseInt(currentId - width)].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // top-left
-            if (currentId > 11 && !isLeftEdge) {
-                const newId = squares[parseInt(currentId) - 1 - width].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // right
-            if (currentId < 98 && !isRightEdge) {
-                const newId = squares[parseInt(currentId) + 1].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // bottom-left
-            if (currentId < 90 && !isLeftEdge) {
-                const newId = squares[parseInt(currentId) - 1 + width].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // bottom-right
-            if (currentId < 88 && !isRightEdge) {
-                const newId = squares[parseInt(currentId) + 1 + width].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-            // bottom
-            if (currentId < 89) {
-                const newId = squares[parseInt(currentId) + width].id;
-                const newSquare = document.getElementById(newId);
-                click(newSquare);
-            }
-        }, 10);
-    }
-    // Click vào mặt lại trang
-    smileIcon.addEventListener('click', function() {
-        window.location.reload();
     });
-    // Thêm lá cờ đánh dấu
-    function addFlag(square) {
-        if (isOverGame) {
+
+    numbers.forEach(num => {
+        let coords = num.split(',');
+        let tile = document.querySelectorAll(`[data-tile="${parseInt(coords[0])},${parseInt(coords[1])}"]`)[0];
+        let dataNum = parseInt(tile.getAttribute('data-num'));
+        if (!dataNum) dataNum = 0;
+        tile.setAttribute('data-num', dataNum + 1);
+    });
+}
+
+// THÊM lá cờ.
+function flag(tile) {
+    if (gameOver) return;
+    if (!tile.classList.contains('l-board__tile--checked')) {
+        if (!tile.classList.contains('l-board__tile--flagged')) {
+            tile.classList.add('l-board__tile--flagged');
+            tile.classList.add('is-active');
+            flagcount--;
+        } else {
+            tile.classList.remove('l-board__tile--flagged');
+            tile.style.backgroundImage = 'none';
+            flagcount++;
+        }
+        let flagCounter = document.querySelector('#flagCounter');
+        flagCounter.innerHTML = flagcount;
+    }
+}
+
+// CLICK chuột trái
+function clickTile(tile) {
+    if (gameOver) return;
+    if (tile.classList.contains('l-board__tile--checked') || tile.classList.contains('l-board__tile--flagged')) return;
+    let coordinate = tile.getAttribute('data-tile');
+    if (bombs.includes(coordinate)) {
+        endGame(tile);
+    } else {
+        /* kiểm tra xem có bom gần đó không */
+        let num = tile.getAttribute('data-num');
+        if (num != null) {
+            tile.classList.add('l-board__tile--checked');
+            tile.innerHTML = num;
+            tile.style.color = numberColors[num - 1];
+            setTimeout(() => {
+                checkVictory();
+            }, 100);
             return;
         }
-        if (!square.classList.contains('l-board__valid--checked') && (flag <= bombAmount)) { // Khi không phải ô l-board__valid--checked và nhỏ hơn số lượng Bomb
-            if (!square.classList.contains('l-board__flag')) {
-                square.classList.add('l-board__flag');
-                square.classList.add('is-active');
-                flag--;
-                checkWin(square)
-            } else {
-                square.classList.remove('l-board__flag');
-                square.style.backgroundImage = 'none';
-                flag++;
-            }
-            let flagCounter = document.querySelector('#flagCounter');
-            flagCounter.innerHTML = flag;
+
+        checkTile(tile, coordinate);
+    }
+    tile.classList.add('l-board__tile--checked');
+}
+
+// CLICK chuột trái kiểm tra các ô xung quanh
+function checkTile(tile, coordinate) {
+
+    let coords = coordinate.split(',');
+    let x = parseInt(coords[0]);
+    let y = parseInt(coords[1]);
+
+    // Kiểm tra các ô trống xung quanh
+    setTimeout(() => {
+        if (x > 0) {
+            let targetW = document.querySelectorAll(`[data-tile="${x - 1},${y}"`)[0];
+            clickTile(targetW, `${x - 1},${y}`);
         }
-    }
-    // Kiểm tra nếu thắng
-    function checkWin() {
-
-        let matches = 0;
-        for (let i = 0; i < squares.length; i++) {
-            if (squares[i].classList.contains('l-board__flag') && squares[i].classList.contains('l-board__bomb')) { // Nếu có class Flag và Bomb
-                matches++;
-            } else if (matches == bombAmount) {
-                popupWin();
-            }
+        if (x < boardSize - 1) {
+            let targetE = document.querySelectorAll(`[data-tile="${x + 1},${y}"`)[0];
+            clickTile(targetE, `${x + 1},${y}`);
         }
+        if (y > 0) {
+            let targetN = document.querySelectorAll(`[data-tile="${x},${y - 1}"]`)[0];
+            clickTile(targetN, `${x},${y - 1}`);
+        }
+        if (y < boardSize - 1) {
+            let targetS = document.querySelectorAll(`[data-tile="${x},${y + 1}"]`)[0];
+            clickTile(targetS, `${x},${y + 1}`);
+        }
+
+        if (x > 0 && y > 0) {
+            let targetNW = document.querySelectorAll(`[data-tile="${x - 1},${y - 1}"`)[0];
+            clickTile(targetNW, `${x - 1},${y - 1}`);
+        }
+        if (x < boardSize - 1 && y < boardSize - 1) {
+            let targetSE = document.querySelectorAll(`[data-tile="${x + 1},${y + 1}"`)[0];
+            clickTile(targetSE, `${x + 1},${y + 1}`);
+        }
+
+        if (y > 0 && x < boardSize - 1) {
+            let targetNE = document.querySelectorAll(`[data-tile="${x + 1},${y - 1}"]`)[0];
+            clickTile(targetNE, `${x + 1},${y - 1}`);
+        }
+        if (x > 0 && y < boardSize - 1) {
+            let targetSW = document.querySelectorAll(`[data-tile="${x - 1},${y + 1}"`)[0];
+            clickTile(targetSW, `${x - 1},${y + 1}`);
+        }
+    }, 10);
+}
+
+// Kiểm tra nếu game thua
+function endGame(tile) {
+    tile;
+    endscreen.innerHTML = `
+    <h3>${endscreenContent.loose}</h3>   
+    <p>Time: ${totalSeconds} sec</p> 
+    <p>Clicks: ${clickCount}</p>
+    `;
+    endscreen.classList.add('is-active');
+    gameOver = true;
+    tiles.forEach(tile => {
+        let coordinate = tile.getAttribute('data-tile');
+        if (bombs.includes(coordinate)) {
+            tile.classList.remove('l-board__tile--flagged');
+            tile.classList.add('l-board__tile--checked', 'tile--bomb');
+            tile.style.backgroundImage = 'url(https://minesweeper.online/img/skins/hd/mine_red.svg?v=2)';
+        }
+    });
+    restartBtn.classList.add('is-active');
+}
+// Kiểm tra nếu game thắng
+function checkVictory() {
+    let win = true;
+    tiles.forEach(tile => {
+        let coordinate = tile.getAttribute('data-tile');
+        if (!tile.classList.contains('l-board__tile--checked') && !bombs.includes(coordinate)) win = false;
+    });
+    if (win) {
+        endscreen.innerHTML = `
+        <h3>${endscreenContent.win}</h3>   
+        <p>Time: ${totalSeconds} sec</p> 
+        <p>Clicks: ${clickCount}</p>
+        `
+        endscreen.classList.add('is-active');
+        gameOver = true;
     }
-    // Kiểm tra nếu thua
-    function overGame(square) {
-        square;
-        isOverGame = true;
-        smileIcon.classList.add('is-active');
-        //Hiện bomb sau khi thua
-        squares.forEach(square => {
-            if (square.classList.contains('l-board__bomb')) {
-                square.style.backgroundImage = 'url(https://minesweeper.online/img/skins/hd/mine_red.svg?v=2)';
+}
+
+// CLICK vào ô : Đếm số lượt click
+function countClick() {
+    var divElements = document.querySelectorAll('.l-board__tile');
+    divElements.forEach(divElement => {
+
+        divElement.addEventListener('mousedown', function(evt) {
+            switch (evt.buttons) {
+            case 1:
+                clickCount += 1;
+                break;
+            case 2:
+                clickCount += 1;
+                break;
             }
-        })
-    }
-    // Hiện popup sau khi thua.
-    function popupLose() {
-
-        gameLose.classList.add('is-active');
-        gameLose.innerHTML = `
-                <h1>GAME OVER!</h1>
-                <p>Time: ${totalSeconds} sec</p> 
-                <p>Clicks: ${clickCount}</p>
-            `;
-    }
-    // Hiện popup sau khi thắng.
-    function popupWin() {
-        gameLose.classList.add('is-active');
-        gameLose.innerHTML = `
-                <h1>CONGRATULATION!</h1>
-                <p>Time: ${totalSeconds} sec</p> 
-                <p>Clicks: ${clickCount}</p>
-            `;
-    }
+        });
+    });
+}
 
 
-    // chạy hàm createBoard
-    createBoard();
+// CLICK vào mặt cười Reset lại trang.
+restartBtn.addEventListener('click', function() {
+    window.location.reload();
 });
+
+/* chạy hàm Setup Game*/
+setup();
+countClick();

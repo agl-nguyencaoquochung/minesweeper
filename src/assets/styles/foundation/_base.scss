@@ -1,8 +1,11 @@
 /* =========================================================
 base - 基本設定
 ========================================================= */
+
 html {
     font-size: 62.5%;
+    width: 100%;
+    height: 100%;
 }
 
 html,
@@ -16,6 +19,14 @@ body {
     font-weight: 500;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image: url('../images/main-bg.jpg');
+    background-size: cover;
 }
 
 a {
@@ -27,19 +38,22 @@ a {
     }
 }
 
-@include mq(lg, max) {
+@include mq(lg,
+max) {
     img {
         max-width: 100%;
     }
 }
 
-@include mq(lg, min) {
+@include mq(lg,
+min) {
     .sp-only {
         display: none;
     }
 }
 
-@include mq(lg, max) {
+@include mq(lg,
+max) {
     .pc-only {
         display: none;
     }
