@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
@@ -7,37 +7,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="keywords" content="">
-    <title>Document</title>
+    <title>Minesweeper Online</title>
     <link href="http://fonts.cdnfonts.com/css/technology" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/styles/style.css">
 </head>
 
 <body>
-
     <!-- CONTAINER -->
     <div class="c-container">
-        <!-- BOARD TOP -->
-        <div class="l-board__top">
-            <div id="flagCounter" class="l-board__text">10</div>
-            <div id="smile" class="l-board__smile"></div>
-            <div id="timer" class="l-board__text">
-                <span id="minutes"></span>:
-                <span id="seconds"></span>
+        <!-- BOARD -->
+        <div class="l-board">
+            <!-- BOARD TOP -->
+            <div class="l-board__top">
+                <div id="flagCounter" class="l-board__text">10</div>
+                <div id="smile" class="l-board__smile"></div>
+                <div id="timer" class="l-board__text">
+                    <span id="minutes"></span>:
+                    <span id="seconds"></span>
+                </div>
             </div>
+            <!-- END BOARD TOP -->
+            <!-- BOARD MAIN -->
+            <div class="l-board__main"></div>
+            <!-- END BOARD MAIN -->
+            <!-- BOARD BOTTOM -->
+            <div class="l-board__bottom"></div>
+            <!-- BOARD BOTTOM -->
         </div>
-        <!-- END BOARD TOP -->
-
-        <!-- BOARD -->
-        <div class="l-board"></div>
-        <!-- BOARD -->
-
-        <!-- BOARD BOTTOM -->
-        <div class="l-board__bottom"></div>
-        <!-- END BOARD BOTTOM -->
+        <!-- END BOARD -->
     </div>
     <!-- END CONTAINER -->
-
 
     <script src="./assets/scripts/index.js"></script>
 </body>

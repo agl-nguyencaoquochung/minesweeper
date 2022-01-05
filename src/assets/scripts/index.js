@@ -1,28 +1,61 @@
-let size = 10; // 10 ô
-let bombFrequency = 0.1; // Tỉ lệ ra bomb 0.1.
-let tileSize = 60;
-let clickCount = 0;
-let totalSeconds = 0;
-let flagcount = 10;
+console.clear();
 
-const board = document.querySelectorAll('.l-board')[0];
+let size = 10; // size x size tiles
+let tileSize = 60;
+
+const board = document.querySelectorAll('.l-board__main')[0];
 let tiles;
 let boardSize;
+let totalSeconds = 0;
+let clickCount = 0;
+let flagcount = 10;
 
-const restartBtn = document.querySelectorAll('.l-board__smile')[0];
-const endscreen = document.querySelectorAll('.l-board__bottom')[0]
+const restartBtn = document.querySelector('#smile');
+const endscreen = document.querySelector('.l-board__bottom');
 
 
-let bombs = [];
+// số bombs
+let bombsNumber = 10;
+let holdingBombs = []; // mảng chứa bomb (có trùng nhau)
+let bombs = []; // mảng chưa bomb (không trùng nhau)
+
 let numbers = [];
-let numberColors = ['#3498db', '#2ecc71', '#e74c3c', '#000080']; // màu chữ từ 1-4
-let endscreenContent = { // Thông báo thắng và thua
+let numberColors = [
+    '#3498db',
+    '#2ecc71',
+    '#e74c3c',
+    '#9b59b6',
+    '#f1c40f',
+    '#1abc9c',
+    '#34495e',
+    '#7f8c8d',
+];
+let endscreenContent = {
     win: '<span>✔</span> you won!',
-    loose: '💣 Booom! Game over.'
+    loose: '💣 Booom! Game over.',
 };
 
-let gameOver = false; // Mặc định false
+let numObj = {}; // mảng chứa data-num
 
+let gameOver = false;
+
+// ĐẾM số lượt Click
+function countClick() {
+    tiles = document.querySelectorAll('.l-board__tile');
+    tiles.forEach(divElement => {
+
+        divElement.addEventListener('mousedown', function(evt) {
+            switch (evt.buttons) {
+            case 1:
+                clickCount += 1;
+                break;
+            case 2:
+                clickCount += 1;
+                break;
+            }
+        });
+    });
+}
 
 // ĐẾM thời gian chạy
 function countUpTime() {
@@ -51,9 +84,9 @@ function countUpTime() {
         }
     }
 }
-countUpTime();
-/* setup the game */
-function setup() {
+
+/* MAIN GAME */
+const setup = () => {
     for (let i = 0; i < Math.pow(size, 2); i++) {
         const tile = document.createElement('div');
         tile.classList.add('l-board__tile');
@@ -64,58 +97,88 @@ function setup() {
     board.style.width = boardSize * tileSize + 'px';
 
     document.documentElement.style.setProperty('--tileSize', `${tileSize}px`);
-    document.documentElement.style.setProperty('--boardSize', `${boardSize * tileSize}px`);
+    document.documentElement.style.setProperty(
+        '--boardSize',
+        `${boardSize * tileSize}px`
+    );
+    // gọi add bomb lần đầu
+    addBomb();
 
     let x = 0;
     let y = 0;
     tiles.forEach((tile, i) => {
         i;
-        // Set Attribute Tile trục tung và hoành
+        // set tile coordinates
         tile.setAttribute('data-tile', `${x},${y}`);
-
-        // Thêm Bombs.
-        let random_boolean = Math.random() < bombFrequency;
-        if (random_boolean) {
-            bombs.push(`${x},${y}`);
-            if (x > 0) numbers.push(`${x - 1},${y}`);
-            if (x < boardSize - 1) numbers.push(`${x + 1},${y}`);
-            if (y > 0) numbers.push(`${x},${y - 1}`);
-            if (y < boardSize - 1) numbers.push(`${x},${y + 1}`);
-
-            if (x > 0 && y > 0) numbers.push(`${x - 1},${y - 1}`);
-            if (x < boardSize - 1 && y < boardSize - 1) numbers.push(`${x + 1},${y + 1}`);
-
-            if (y > 0 && x < boardSize - 1) numbers.push(`${x + 1},${y - 1}`);
-            if (x > 0 && y < boardSize - 1) numbers.push(`${x - 1},${y + 1}`);
-        }
-
         x++;
         if (x >= boardSize) {
             x = 0;
             y++;
         }
-
         // CLICK chuột phải
         tile.oncontextmenu = function(e) {
             e.preventDefault();
             flag(tile); // Chạy hàm thêm lá cờ.
-        }
+        };
 
         // CLICK chuột trái
         tile.addEventListener('click', function() {
-            clickTile(tile); // Hàm chạy click chuột trái
+            clickTile(tile); // Chạy hàm click chuột trái
         });
     });
+    bombs.forEach((bomb) => {
+        //bomb -> vd: 1,2
+        let coords = bomb.split(','); // ['1','2']
+        let x = parseInt(coords[0]); // x = 1
+        let y = parseInt(coords[1]); // y = 2
 
-    numbers.forEach(num => {
-        let coords = num.split(',');
-        let tile = document.querySelectorAll(`[data-tile="${parseInt(coords[0])},${parseInt(coords[1])}"]`)[0];
-        let dataNum = parseInt(tile.getAttribute('data-num'));
-        if (!dataNum) dataNum = 0;
-        tile.setAttribute('data-num', dataNum + 1);
+        // nghiên cứu cách chơi để hiểu đoạn này
+        if (x > 0) numbers.push(`${x - 1},${y}`);
+        if (x < boardSize - 1) numbers.push(`${x + 1},${y}`);
+        if (y > 0) numbers.push(`${x},${y - 1}`);
+        if (y < boardSize - 1) numbers.push(`${x},${y + 1}`);
+        if (x > 0 && y > 0) numbers.push(`${x - 1},${y - 1}`);
+        if (x < boardSize - 1 && y < boardSize - 1)
+            numbers.push(`${x + 1},${y + 1}`);
+        if (y > 0 && x < boardSize - 1) numbers.push(`${x + 1},${y - 1}`);
+        if (x > 0 && y < boardSize - 1) numbers.push(`${x - 1},${y + 1}`);
     });
-}
 
+    //tạo object chứa data-num và vị trí ô
+    //  vd: 1,2 (vị trí ô) : 1 (data-num)
+    numbers.forEach((num) => {
+        numObj[num] = (numObj[num] || 0) + 1;
+
+    });
+};
+
+// THÊM Bomb.
+const addBomb = function() {
+    let x = Math.floor(Math.random() * 100); //random từ 0-99
+    if (x < 10) {
+        // nếu random ra số nhỏ hơn 10 thì thêm số 0 phía trước , vd: 5 -> 05 (do tọa độ có 2 số x và y)
+        x = '0' + x;
+    }
+    x = x.toString().split(''); // tách x ra , vd: 05 -> ['0','5']
+    holdingBombs.push(`${x[0]},${x[1]}`); // push x vào holdingBombs array , vd : ['5,0','4,5',...]
+
+    bombs = unique(holdingBombs);
+
+    while (bombs.length < bombsNumber) {
+        //gọi lại addBomb nếu chưa đủ bom (tính length của mảng bombs )
+        addBomb();
+    }
+};
+// Xoá phần tử trùng lặp của mảng holdingBombs
+function unique(holdingBombs) {
+    var newArr = []
+    for (var i = 0; i < holdingBombs.length; i++) {
+        if (!newArr.includes(holdingBombs[i])) {
+            newArr.push(holdingBombs[i])
+        }
+    }
+    return newArr;
+}
 // THÊM lá cờ.
 function flag(tile) {
     if (gameOver) return;
@@ -134,8 +197,8 @@ function flag(tile) {
     }
 }
 
-// CLICK chuột trái
-function clickTile(tile) {
+// CLICK chuột trái.
+const clickTile = (tile) => {
     if (gameOver) return;
     if (tile.classList.contains('l-board__tile--checked') || tile.classList.contains('l-board__tile--flagged')) return;
     let coordinate = tile.getAttribute('data-tile');
@@ -143,7 +206,7 @@ function clickTile(tile) {
         endGame(tile);
     } else {
         /* kiểm tra xem có bom gần đó không */
-        let num = tile.getAttribute('data-num');
+        let num = numObj[coordinate];
         if (num != null) {
             tile.classList.add('l-board__tile--checked');
             tile.innerHTML = num;
@@ -157,11 +220,10 @@ function clickTile(tile) {
         checkTile(tile, coordinate);
     }
     tile.classList.add('l-board__tile--checked');
-}
+};
 
-// CLICK chuột trái kiểm tra các ô xung quanh
-function checkTile(tile, coordinate) {
-
+// CLICK chuột trái kiểm tra các ô xung quanh.
+const checkTile = (tile, coordinate) => {
     let coords = coordinate.split(',');
     let x = parseInt(coords[0]);
     let y = parseInt(coords[1]);
@@ -186,24 +248,37 @@ function checkTile(tile, coordinate) {
         }
 
         if (x > 0 && y > 0) {
-            let targetNW = document.querySelectorAll(`[data-tile="${x - 1},${y - 1}"`)[0];
+            let targetNW = document.querySelectorAll(
+                `[data-tile="${x - 1},${y - 1}"`
+            )[0];
             clickTile(targetNW, `${x - 1},${y - 1}`);
         }
         if (x < boardSize - 1 && y < boardSize - 1) {
-            let targetSE = document.querySelectorAll(`[data-tile="${x + 1},${y + 1}"`)[0];
+            let targetSE = document.querySelectorAll(
+                `[data-tile="${x + 1},${y + 1}"`
+            )[0];
             clickTile(targetSE, `${x + 1},${y + 1}`);
         }
 
         if (y > 0 && x < boardSize - 1) {
-            let targetNE = document.querySelectorAll(`[data-tile="${x + 1},${y - 1}"]`)[0];
+            let targetNE = document.querySelectorAll(
+                `[data-tile="${x + 1},${y - 1}"]`
+            )[0];
             clickTile(targetNE, `${x + 1},${y - 1}`);
         }
         if (x > 0 && y < boardSize - 1) {
-            let targetSW = document.querySelectorAll(`[data-tile="${x - 1},${y + 1}"`)[0];
+            let targetSW = document.querySelectorAll(
+                `[data-tile="${x - 1},${y + 1}"`
+            )[0];
             clickTile(targetSW, `${x - 1},${y + 1}`);
         }
     }, 10);
-}
+};
+
+// CLICK vào mặt cười Reset lại trang.
+restartBtn.addEventListener('click', function() {
+    window.location.reload();
+});
 
 // Kiểm tra nếu game thua
 function endGame(tile) {
@@ -225,6 +300,7 @@ function endGame(tile) {
     });
     restartBtn.classList.add('is-active');
 }
+
 // Kiểm tra nếu game thắng
 function checkVictory() {
     let win = true;
@@ -243,30 +319,9 @@ function checkVictory() {
     }
 }
 
-// CLICK vào ô : Đếm số lượt click
-function countClick() {
-    var divElements = document.querySelectorAll('.l-board__tile');
-    divElements.forEach(divElement => {
-
-        divElement.addEventListener('mousedown', function(evt) {
-            switch (evt.buttons) {
-            case 1:
-                clickCount += 1;
-                break;
-            case 2:
-                clickCount += 1;
-                break;
-            }
-        });
-    });
-}
-
-
-// CLICK vào mặt cười Reset lại trang.
-restartBtn.addEventListener('click', function() {
-    window.location.reload();
-});
-
-/* chạy hàm Setup Game*/
+/* chạy hàm Setup Game */
 setup();
+/* Đếm số Click chuột*/
 countClick();
+/* Đếm số Giây*/
+countUpTime();
